@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Persona;
+use App\Models\Interes;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class PersonaController extends Controller
 {
@@ -18,17 +21,35 @@ class PersonaController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
-        //
+        $intereses = Interes::orderBy('nombre')->get();
+
+        return view('personas.create', compact('intereses'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        //
+        $validated = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:personas,email'],
+            'intereses' => ['nullable', 'array'],
+            'intereses.*' => ['integer', 'exists:intereses,id'],
+        ]);
+
+        $persona = Persona::create([
+            'nombre' => $validated['nombre'],
+            'email' => $validated['email'],
+        ]);
+
+        $persona->intereses()->sync($validated['intereses'] ?? []);
+
+        return redirect()
+            ->route('personas.create')
+            ->with('success', 'Persona creada exitosamente.');
     }
 
     /**

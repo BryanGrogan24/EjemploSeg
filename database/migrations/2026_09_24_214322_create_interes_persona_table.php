@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('interes_persona', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('persona_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('interes_id')->constrained('intereses')->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['persona_id', 'interes_id']);
         });
     }
 
